@@ -63,19 +63,22 @@ class CommentViewSet(viewsets.ModelViewSet):
     lookup_url_kwarg = 'comment_id'
     permission_classes = (IsOwnerOrReadOnly,)
 
+    def get_post(self):
+        return get_object_or_404(Post, pk=self.kwargs.get('post_id'))
+
     def get_queryset(self):
         """
         Возвращает:
             QuerySet: Комментарии, относящиеся к определенному посту.
         """
-        self.post = get_object_or_404(Post, pk=self.kwargs.get('post_id'))
+        self.post = self.get_post()
         return self.post.comments.all()
 
     def perform_create(self, serializer):
         """
         Выполняет операцию создания комментария.
         """
-        post = get_object_or_404(Post, pk=self.kwargs.get('post_id'))
+        post = self.get_post()
         serializer.save(author=self.request.user,
                         post=post, )
 
@@ -110,15 +113,4 @@ class FollowViewSet(viewsets.ModelViewSet):
         """
         Выполняет операцию создания подписки.
         """
-        following = serializer.validated_data.get('following')
-        user = self.request.user
-
-        # Проверяем, подписывается ли пользователь сам на себя.
-        if following == user:
-            raise ValidationError('Вы не можете подписаться на себя')
-
-        # Проверяем, существует ли уже данная подписка в БД.
-        if Follow.objects.filter(user=user, following=following).exists():
-            raise ValidationError('Вы уже подписаны на этого автора')
-
-        serializer.save(user=user, following=following)
+        serializer.save(user=self.request.user)

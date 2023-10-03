@@ -17,17 +17,15 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
         Разрешает запрос если метод является безопасным или если пользователь
         аутентифицирован.
         """
-
-        if request.method in permissions.SAFE_METHODS:
-            return True
-        return request.user.is_authenticated
+        return True if (
+            request.method in permissions.SAFE_METHODS
+        ) else request.user.is_authenticated
 
     def has_object_permission(self, request, view, obj):
         """
         Разрешает запрос если метод является безопасным или если пользователь
         является автором объекта.
         """
-
-        if request.method in permissions.SAFE_METHODS:
-            return True
-        return obj.author == request.user
+        return True if (
+            request.method in permissions.SAFE_METHODS
+        ) else obj.author == request.user

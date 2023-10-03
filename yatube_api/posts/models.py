@@ -1,6 +1,7 @@
 """
 Данный модуль содержит модели, которые используются в приложении yatube_api.
 """
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
 
@@ -25,6 +26,10 @@ class Group(models.Model):
         verbose_name='Описание группы',
     )
 
+    class Meta:
+        verbose_name = 'Группа'
+        verbose_name_plural = 'Группы'
+
 
 class Post(models.Model):
     text = models.TextField(
@@ -44,7 +49,7 @@ class Post(models.Model):
         related_name='posts',
     )
     image = models.ImageField(
-        upload_to='posts/',
+        upload_to=settings.IMAGE_UPLOAD_PATH,
         null=True,
         blank=True,
         help_text='Изображение',
@@ -60,8 +65,9 @@ class Post(models.Model):
         verbose_name='Группа',
     )
 
-    def __str__(self):
-        return self.text
+    class Meta:
+        verbose_name = 'Пост'
+        verbose_name_plural = 'Посты'
 
 
 class Follow(models.Model):
@@ -78,6 +84,11 @@ class Follow(models.Model):
         related_name='followers',
         help_text='На кого подписан',
     )
+
+    class Meta:
+        unique_together = ('user', 'following', )
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
 
 
 class Comment(models.Model):
@@ -105,3 +116,7 @@ class Comment(models.Model):
         help_text='Дата добавления',
         verbose_name='Дата добавления',
     )
+
+    class Meta:
+        verbose_name = 'Комментарий'
+        verbose_name_plural = 'Комментарии'

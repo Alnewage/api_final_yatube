@@ -18,6 +18,7 @@ class Base64ImageField(serializers.ImageField):
     Пользовательское поле сериализатора для обработки изображений
     в формате base64.
     """
+
     def to_internal_value(self, data):
         """
         Преобразует значение изображения из формата base64 в объект файла.
@@ -26,7 +27,7 @@ class Base64ImageField(serializers.ImageField):
             format, imgstr = data.split(';base64,')
             ext = format.split('/')[-1]
 
-            data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext,)
+            data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext, )
 
         return super().to_internal_value(data)
 
@@ -35,10 +36,10 @@ class PostSerializer(serializers.ModelSerializer):
     """
     Сериализатор для модели `Post`.
     """
-    author = SlugRelatedField(slug_field='username', read_only=True,)
+    author = SlugRelatedField(slug_field='username', read_only=True, )
     image = Base64ImageField(required=False, allow_null=True)
     pub_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M",
-                                         read_only=True,)
+                                         read_only=True, )
 
     class Meta:
         model = Post
@@ -49,6 +50,7 @@ class GroupSerializer(serializers.ModelSerializer):
     """
     Сериализатор для модели `Group`.
     """
+
     class Meta:
         model = Group
         fields = ('id', 'title', 'slug', 'description',)
@@ -64,7 +66,7 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = ('id', 'author', 'post', 'text', 'created',)
-        read_only_fields = ('author', 'post', 'created',)
+        read_only_fields = ('post', 'created',)
 
 
 class FollowSerializer(serializers.ModelSerializer):
@@ -79,3 +81,17 @@ class FollowSerializer(serializers.ModelSerializer):
     class Meta:
         model = Follow
         fields = ('user', 'following',)
+
+    def validate(self, data):
+        user = self.context['request'].user
+        # Проверяем, подписывается ли пользователь сам на себя.
+        if user == data['following']:
+            raise serializers.ValidationError('Нельзя подписаться на себя')
+        # Проверяем, существует ли уже данная подписка в БД.
+        if Follow.objects.filter(
+            user=user,
+            following=data['following']
+        ).exists():
+            raise serializers.ValidationError(
+                'Вы уже подписаны на этого автора')
+        return data
