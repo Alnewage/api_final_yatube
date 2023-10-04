@@ -14,19 +14,12 @@ router_v1.register(r'posts', PostViewSet, basename='posts', )
 router_v1.register(r'posts/(?P<post_id>\d+)/comments', CommentViewSet,
                    basename='comments', )
 router_v1.register(r'groups', GroupViewSet, basename='groups', )
+router_v1.register(r'follow', FollowViewSet, basename='follow', )
 
 urlpatterns = [
     # Подключение маршрутов роутера.
     path('', include(router_v1.urls), ),
 
-    # Подключение URL-маршрутов для работы с пользователями (djoser).
-    path('', include('djoser.urls'), ),
-
     # Подключение URL-маршрутов для работы с токенами (djoser).
     path('', include('djoser.urls.jwt'), ),
-
-    # URL-маршрут для работы с подписками (follow).
-    path('follow/',
-         FollowViewSet.as_view({'get': 'list', 'post': 'create', }, ),
-         name='follow', ),
 ]
